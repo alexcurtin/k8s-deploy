@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function init {
+  echo ""
+  heading "Initializing"
+  step "Checking vars"
+
+  if [ "${JOB_NAME}" = "" ] ; then
+    log "JOB_NAME is not defined. Expected something like: <app_name>-<buildstep>[-<environment>]" | red
+    exit 1
+  fi
+}

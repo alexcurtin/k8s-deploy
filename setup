@@ -1,0 +1,8 @@
+#!/bin/bash --login
+
+set -eo pipefail
+
+source ./lib/helpers
+source ./lib/init
+
+init
