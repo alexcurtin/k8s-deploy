@@ -2,7 +2,73 @@
 
 set -eo
 
-. ./lib/helpers
+function heading {
+  echo "$@" | arrows
+}
+
+function step {
+  log "$@" | purple
+}
+
+function info {
+  log "$@" | yellow
+}
+
+function log {
+  echo "$@" | indent
+}
+
+function arrows {
+  sed 's/^/=====> /'
+}
+
+function indent {
+  sed 's/^/       /'
+}
+
+function red {
+  local none="\033[0m"
+  local color="\033[0;31m"
+  echo -e "${color}$(cat)${none}"
+}
+
+function green {
+  local none="\033[0m"
+  local color="\033[0;32m"
+  echo -e "${color}$(cat)${none}"
+}
+
+function blue {
+  local none="\033[0m"
+  local color="\033[1;34m"
+  echo -e "${color}$(cat)${none}"
+}
+
+function yellow {
+  local none="\033[0m"
+  local color="\033[1;33m"
+  echo -e "${color}$(cat)${none}"
+}
+
+function purple {
+  local none="\033[0m"
+  local color="\033[1;35m"
+  echo -e "${color}$(cat)${none}"
+}
+
+function run {
+  sim "$@"
+  eval $@ 2>&1 | indent
+}
+
+function run_safe {
+  sim "$@"
+  eval $@ 2>&1>/dev/null
+}
+
+function sim {
+  log "$@" | blue
+}
 . ./lib/init
 
 init
