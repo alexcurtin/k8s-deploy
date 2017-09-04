@@ -2,7 +2,7 @@
 
 set -eo
 
-. ./lib/helpers
-. ./lib/init
+sudo -s source ./lib/helpers
+sudo -s source ./lib/init
 
 init
