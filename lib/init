@@ -7,6 +7,16 @@ function init {
 
   if [ "${JOB_NAME}" = "" ] ; then
     log "JOB_NAME is not defined. Expected something like: <app_name>-<buildstep>[-<environment>]" | red
+    echo "${JOB_NAME}""
     exit 1
   fi
+
+SHORTSHA=$(git rev-parse --short HEAD)
+echo $SHORTSHA
+
 }
+
+
+
+
+
