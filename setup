@@ -1,6 +1,6 @@
 #!/bin/bash --login
 
-set -eo pipefail
+set -eo
 
 source ./lib/helpers
 source ./lib/init
