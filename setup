@@ -1,6 +1,6 @@
-#!/bin/bash --login
+#!/bin/bash
 
-#set -eo
+set -eo
 
 source k8s-deploy/lib/helpers
 source k8s-deploy/lib/init
