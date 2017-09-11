@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -eo
+set -eox
 
-source k8s-deploy/lib/helpers
-source k8s-deploy/lib/init
+source ./lib/helpers
+source ./lib/init
 
-k8s-deploy/lib/init
+init
