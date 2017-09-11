@@ -76,8 +76,7 @@ function short_sha {
 
 function pull_docker_image_previous_env {
   short_sha
-  APP=databunker
-  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  APP=$(echo $JOB_NAME | cut -d'/' -f2)
   heading "Pulling latest image for ${APP} from previous GCP project" | green
   if gcloud docker -- pull gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
   heading "Docker image from previous environment successfully pulled down locally" | green
@@ -100,7 +99,7 @@ function auth_to_current_gcp_env {
 
 function push_docker_image_to_current_env {
   short_sha
-  APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  APP=$(echo $JOB_NAME | cut -d'/' -f2)
   heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
   if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
   heading "Docker image from previous environment successfully pushed up to ${PROJECT}" | green
