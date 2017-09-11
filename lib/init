@@ -101,7 +101,7 @@ function push_docker_image_to_current_env {
   short_sha
   APP=$(echo $JOB_NAME | cut -d'/' -f2)
   heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
-  if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} -q ; then
+  if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
   heading "Docker image from previous environment successfully pushed up to ${PROJECT}" | green
   else
   log "Docker image push failed" | red
