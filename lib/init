@@ -124,5 +124,5 @@ function init {
   pull_docker_image_previous_env
   auth_to_current_gcp_env
   push_docker_image_to_current_env
-  kubernetes_deploy
+  # kubernetes_deploy
 }
