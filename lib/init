@@ -100,8 +100,7 @@ function auth_to_current_gcp_env {
 
 function push_docker_image_to_current_env {
   short_sha
-  APP=databunker
-  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
   heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
   if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
   heading "Docker image from previous environment successfully pushed up to ${PROJECT}" | green
