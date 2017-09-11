@@ -43,7 +43,7 @@ function previous_project {
   elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "production" ]]; then
   PROJECT=performance-tier1
   else
-  log "No Previous project name could be parsed" | red
+  log "No previous project name could be parsed" | red
   exit 1
   fi
 }
@@ -57,7 +57,7 @@ function current_project {
   elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "production" ]]; then
   PROJECT=production-tier1
   else
-  log "No Previous project name could be parsed" | red
+  log "No previous project name could be parsed" | red
   exit 1
   fi
 }
@@ -80,26 +80,13 @@ function pull_docker_image_previous_env {
   # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
   heading "Pulling latest image for ${APP} from previous GCP project" | green
   if gcloud docker -- pull gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
-  heading "Docker image from previous evironment successfully pulled down locally" | green
+  heading "Docker image from previous environment successfully pulled down locally" | green
   else
   log "Docker image pull from previous environment failed" | red
   exit 1
   fi
   NEXT_ENV=$(echo $JOB_NAME | cut -d'-' -f2)-tier1
   docker tag gcr.io/${PROJECT}/${APP}:${SHORT_SHA} gcr.io/${NEXT_ENV}/${APP}:${SHORT_SHA}
-}
-
-function push_docker_image_to_current_env {
-  short_sha
-  APP=databunker
-  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
-  heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
-  if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
-  heading "Docker image from previous evironment successfully pushed up to ${PROJECT}" | green
-  else
-  log "Docker image push failed" | red
-  exit 1
-  fi  
 }
 
 function auth_to_current_gcp_env {
@@ -109,6 +96,19 @@ function auth_to_current_gcp_env {
   heading "Authenticating to current GCP environment to push latest image" | blue
   gcloud auth activate-service-account --key-file ${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS} --project ${PROJECT}
 
+}
+
+function push_docker_image_to_current_env {
+  short_sha
+  APP=databunker
+  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
+  if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
+  heading "Docker image from previous environment successfully pushed up to ${PROJECT}" | green
+  else
+  log "Docker image push failed" | red
+  exit 1
+  fi  
 }
 
 function init {
@@ -126,4 +126,5 @@ function init {
   pull_docker_image_previous_env
   auth_to_current_gcp_env
   push_docker_image_to_current_env
+  kubernetes_deploy
 }
