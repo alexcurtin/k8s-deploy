@@ -1,22 +1,129 @@
 #!/bin/bash
 
-function init {
-  echo ""
-  heading "Initializing"
-  step "Checking vars"
+function previous_gcp_env {
 
-  if [ "${JOB_NAME}" = "" ] ; then
-    log "JOB_NAME is not defined. Expected something like: <app_name>-<buildstep>[-<environment>]" | red
-    echo "${JOB_NAME}"
-    exit 1
+  if [[ ${JOB_NAME} =~ "staging" ]]; then
+    log "Current deployment is a staging deployment, set previous_gcp_env to INTEGRATION"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_INTEGRATION}
+  elif [[ ${JOB_NAME} =~ "performance" ]]; then
+    log "Current deployment is a performance deployment, set previous_gcp_env to STAGING"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_STAGING}
+  elif [[ ${JOB_NAME} =~ "production" ]]; then 
+    log "Current deployment is a production deployment, set previous_gcp_env to PERFORMANCE"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_PERFORMANCE}
+  else
+   log "Job Name variable doesn't contain a valid deployment environment" | red
+   exit 1
   fi
+}
 
-SHORTSHA=$(git rev-parse --short HEAD)
-echo $SHORTSHA
+function current_gcp_env {
+
+  if [[ ${JOB_NAME} =~ "staging" ]]; then
+    log "Current deployment is a staging deployment, set current_gcp_env to STAGING"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_STAGING}
+  elif [[ ${JOB_NAME} =~ "performance" ]]; then
+    log "Current deployment is a performance deployment, set current_gcp_env to PERFORMANCE"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_PERFORMANCE}
+  elif [[ ${JOB_NAME} =~ "production" ]]; then 
+    log "Current deployment is a production deployment, set current_gcp_env to PRODUCTION"
+    GCLOUD_SERVICE_ACCOUNT_CREDENTIALS=${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS_PRODUCTION}
+  else
+   log "Job Name variable doesn't contain a valid deployment environment" | red
+   exit 1
+  fi
+}
+
+function previous_project {
+
+  if [[ $(echo $JOB_NAME | cut -d'-' -f2) == "staging" ]]; then
+  PROJECT=integration-tier1
+  elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "performance" ]]; then
+  PROJECT=staging-tier1
+  elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "production" ]]; then
+  PROJECT=performance-tier1
+  else
+  log "No Previous project name could be parsed" | red
+  exit 1
+  fi
+}
+
+function current_project {
+
+  if [[ $(echo $JOB_NAME | cut -d'-' -f2) == "staging" ]]; then
+  PROJECT=staging-tier1
+  elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "performance" ]]; then
+  PROJECT=performance-tier1
+  elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "production" ]]; then
+  PROJECT=production-tier1
+  else
+  log "No Previous project name could be parsed" | red
+  exit 1
+  fi
+}
+
+function auth_previous_gcp {
+
+  previous_project
+  heading "Authenticating to previous GCP environment to pull latest image" | blue
+  gcloud auth activate-service-account --key-file ${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS} --project ${PROJECT}
+}
+
+function short_sha {
+  
+  SHORT_SHA=$(echo ${GIT_SHA} | cut -c 1-7)
+}
+
+function pull_docker_image_previous_env {
+  short_sha
+  APP=databunker
+  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  heading "Pulling latest image for ${APP} from previous GCP project" | green
+  if gcloud docker -- pull gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
+  heading "Docker image from previous evironment successfully pulled down locally" | green
+  else
+  log "Docker image pull from previous environment failed" | red
+  exit 1
+  fi
+  NEXT_ENV=$(echo $JOB_NAME | cut -d'-' -f2)-tier1
+  docker tag gcr.io/${PROJECT}/${APP}:${SHORT_SHA} gcr.io/${NEXT_ENV}/${APP}:${SHORT_SHA}
+}
+
+function push_docker_image_to_current_env {
+  short_sha
+  APP=databunker
+  # # APP=$(git config remote.origin.url | sed -e 's|.*[/:]||' -e 's/\..*//')
+  heading "Pushing image for ${APP} with sha ${SHORT_SHA} current GCP project ${PROJECT}" | green
+  if gcloud docker -- push gcr.io/${PROJECT}/${APP}:${SHORT_SHA} ; then
+  heading "Docker image from previous evironment successfully pushed up to ${PROJECT}" | green
+  else
+  log "Docker image push failed" | red
+  exit 1
+  fi  
+}
+
+function auth_to_current_gcp_env {
+
+  current_gcp_env
+  current_project
+  heading "Authenticating to current GCP environment to push latest image" | blue
+  gcloud auth activate-service-account --key-file ${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS} --project ${PROJECT}
 
 }
 
+function init {
+  echo ""
+  heading "Initializing"
+  step "Checking Environmental Variables"
 
+  if [ "${JOB_NAME}" = "" ] ; then
+    log "JOB_NAME is not defined. Expected something like: <app_name>-<buildstep>[-<environment>]" | red
+    exit 1
+  fi
 
-
-
+  previous_gcp_env
+  auth_previous_gcp
+  pull_docker_image_previous_env
+  auth_to_current_gcp_env
+  push_docker_image_to_current_env
+}
