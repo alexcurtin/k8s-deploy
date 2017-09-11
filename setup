@@ -2,7 +2,7 @@
 
 #set -eo
 
-source ./lib/helpers
-source ./lib/init
+source k8s-deploy/lib/helpers
+source k8s-deploy/lib/init
 
-init
+k8s-deploy/lib/init
