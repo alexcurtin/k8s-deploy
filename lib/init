@@ -129,7 +129,7 @@ function auth_container_engine {
 
 function kubernetes_deploy {
 
-  REVISION=${SHORT_SHA} KUBECONFIG=~/.kube/config kubernetes_deploy ${APP} ${KUBE_CONTEXT} --template-dir=${TEMPLATE_DIR}
+  REVISION=${SHORT_SHA} KUBECONFIG=~/.kube/config kubernetes-deploy ${APP} ${KUBE_CONTEXT} --template-dir=${TEMPLATE_DIR}
 
 }
 
