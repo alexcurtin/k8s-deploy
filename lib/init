@@ -53,15 +53,15 @@ function current_project {
   if [[ $(echo $JOB_NAME | cut -d'-' -f2) == "staging" ]]; then
   PROJECT=staging-tier1
   KUBE_CONTEXT=gke_staging-tier1_us-west1-a_staging-environment
-  TEMPLATE_DIR=../../config/deploy/staging_tier1/
+  TEMPLATE_DIR=../config/deploy/staging_tier1/
   elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "performance" ]]; then
   PROJECT=performance-tier1
   KUBE_CONTEXT=gke_performance-tier1_us-west1-a_performance-environment
-  TEMPLATE_DIR=../../config/deploy/performance_tier1/
+  TEMPLATE_DIR=../config/deploy/performance_tier1/
   elif [[ $(echo $JOB_NAME | cut -d'-' -f2) == "production" ]]; then
   PROJECT=production-tier1
   KUBE_CONTEXT=gke_production-tier1_us-west1-a_production-environment
-  TEMPLATE_DIR=../../config/deploy/production_tier1/
+  TEMPLATE_DIR=../config/deploy/production_tier1/
   else
   log "No previous project name could be parsed" | red
   exit 1
